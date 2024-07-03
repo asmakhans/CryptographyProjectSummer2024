@@ -1,34 +1,44 @@
 import numpy as np
 
+# assign each element(letter) into its corresponding indexed value(starting from 0)
+alphabet_mod26 = 'abcdefghijklmnopqrstuvwxyz'
+alphabet_mod29 = 'abcdefghijklmnopqrstuvwxyz ?!'  # this includes _ ? !
+
+index = range(len(alphabet_mod26))
+
+# letter_to_index = dict(zip(index, alphabet_mod26))
+# index_to_letter = dict(zip(alphabet_mod26, index))
+
+# matrices for encryption
+key_26 = np.array([[6, 11], [25, 15]])
+key_29 = np.array([[28, 7], [19, 18]])
 
 
+# function for the encrypting thing using 2-Hill Cipher
+def encrypt(message, key, mod):
+    # checking if text length is even
+    # if not even, then pad
+    if len(message) % 2 != 0:
+        message += 'x'
+    message.lower()
 
-a = input("Hello enter key value a: ")
-b = input("Hello enter key value b: ")
-c = input("Hello enter key value c: ")
-d = input("Hello enter key value d: ")
+    # mapping
+    letter_to_index = dict(zip(index, alphabet_mod26))
 
-f = open("encrypted-message.txt", "r")
+    # MOVE THIS FOR LOOP INTO ITS OWN FUNCTION
+    # example: 13671
+    for i in range(0, len(letter_to_index), 2):
+        block = np.array(letter_to_index[i:i+2])
+        # block = np.array([letter_to_index])
+        # block.reshape(2, len(letter_to_index)/2)
+        # print(block)
+        # atp: 13 67 1x
+        # dot product of the arrays (using the key and the newly created blocks) then modded to either 26 or 29
+        encrypted = np.dot(key, block) % mod
 
-cipher_key = np.array([[int(a), int(b)],
-              [int(c), int(d)]])
+    encrypted_to_text = dict(zip(encrypted, index)) # confused here
+    return encrypted_to_text
 
-testVal = np.array([[7],[8]])
 
-cipher_key.shape
-print(np.linalg.inv(cipher_key))
-
-#print(f.read())
-# print(u"!")
-# print(u"?")
-# print(ord("H"))
-decipher_key = np.linalg.inv(cipher_key)
-print(decipher_key)
-
-def decrypt_msg (array, file):
-
-    print(plain_txt)
-
-def encrypt_msg (key, file):
-
-    print(cipher_txt)
+text = "TRYTOBREAKTHISCODE"
+print(encrypt(text, key_26, 26))
