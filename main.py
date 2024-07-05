@@ -1,105 +1,89 @@
 import string
 import numpy as np
 
-# assign each element(letter) into its corresponding indexed value(starting from 0)
+# Assign each element (letter) into its corresponding indexed value (starting from 0)
 alphabet_mod26 = 'abcdefghijklmnopqrstuvwxyz'
 alphabet_mod29 = 'abcdefghijklmnopqrstuvwxyz ?!'  # this includes _ ? !
 
-# create empty dictionaries
+# Create empty dictionaries
 letter_to_index_26 = {}
 index_to_letter_26 = {}
 
-# iterate through the dictionaries and fill them up with the mappings of the alphabet
-# uses a for loop to map each letter to its index and vice versa
+# Iterate through the dictionaries and fill them up with the mappings of the alphabet
 for index, letter in enumerate(alphabet_mod26):
     letter_to_index_26[letter] = index
     index_to_letter_26[index] = letter
 
-# index = range(len(alphabet_mod26)) #char in alphabet_mod26
-# index_29 = range(len(alphabet_mod29))
-
-# letter_to_index = dict(zip(index, alphabet_mod26))
-# we need for letter to index to return an array, so let's make this into a function that goes throguh each char in the text
-# this is where we need to return an array, since at the moment it is only returning a value of 1
-
-# index_to_letter = dict(zip(alphabet_mod26, index))
-# this part will be a bit more complicated since we have to return a .join version of the array according to the mappings of the index
-
-# matrices for encryption
+# Matrices for encryption
 key_26 = np.array([[6, 11], [25, 15]])
-key_29 = np.array([[28, 7], [19, 18]])
+# key_29 = np.array([[28, 7], [19, 18]])
 
-# convert text to number based on alphabet chart mapping so like 'A' to 0
+
+# Convert text to number based on alphabet chart mapping (e.g., 'A' to 0)
 def text_to_num(text, letter_to_index):
     return [letter_to_index[char] for char in text]
 
+# Convert numbers back to text
 def numbers_to_text(numbers, index_to_letter):
-    # start an empty string to build return
+    # Start with an empty string to build the return value
     text = ""
-    # iterate through all the numbers
+    # Iterate through all the numbers
     for n in numbers:
-        letter = index_to_letter[n] #converting each number to its letter using the index to letter dictionary
-        text += letter # concatenate the letter to the return
-
+        # Convert each number to its letter using the index_to_letter dictionary
+        letter = index_to_letter[n]
+        # Concatenate the letter to the return string
+        text += letter
     return text
 
-# create pairs from numerical values
-def to_pairs(numbers):
+
+# Create pairs from numerical values
+def create_pairs(numbers):
     pairs = []
-
-    #iterate thorugh list of nums by 2
+    # Iterate through the list of numbers in steps of 2
     for i in range(0, len(numbers), 2):
-        pair = (numbers[i], numbers[i + 1]) # creates a pair using curr and curr + 1
-        pairs.append(pair) # add each pair to the pairs list
-
+        pair = (numbers[i], numbers[i + 1])  # Create a pair using current and next element
+        pairs.append(pair)  # Add each pair to the pairs list
     return pairs
 
-# function for the encrypting thing using 2-Hill Cipher
+
+# Encryption function using Hill 2-cipher
 def encrypt(message, key, mod, letter_to_index, index_to_letter):
-    message.lower()
-    # checking if text length is even
-    # if not even, then pad
+    # Convert the message to uppercase
+    message = message.lower()
+
+    # Pad the message if its length is odd
     if len(message) % 2 != 0:
-        message += 'x'
+        message += 'x'  # Padding with 'X' (assuming 'X' is not a frequent character in the message)
 
-    # mapping
-    # letter_to_index = dict(zip(index, alphabet_mod26)) # A: 0
-    # letter_to_index = dict(enumerate(alphabet_mod26, 0))
+    # Convert the message to numerical values
+    message_nums = text_to_num(message, letter_to_index)
 
-    # convert message to nums
-    message_to_num = text_to_num(message, letter_to_index)
-    #create pairs of 2 from nums
-    pairs = to_pairs(message_to_num)
+    # Create pairs from the numerical values
+    pairs = create_pairs(message_nums)
 
-    encrypted = []
+    encrypted_pairs = []
     for pair in pairs:
-        ve
+        # construct the pair as an array
+        array = np.array(pair)
 
-    # MOVE THIS FOR LOOP INTO ITS OWN FUNCTION
-    # example: 13671
-    for i in range(0, len(letter_to_index), 2):
-        # block = np.array(letter_to_index[i:i+2])
-        block = np.array([letter_to_index]).reshape(-1, 2).T
-        # print(block)
-        # atp: 13 67 1x
-        # dot product of the arrays (using the key and the newly created blocks) then modded to either 26 or 29
-        encrypted = np.dot(key, block) % mod
+        # Multiply the key matrix with the vector
+        encrypted_array = np.dot(key, array) % mod
 
-    encrypted_to_text = dict(zip(encrypted, index)) # confused here
-    return encrypted_to_text
+        # convert to list and append to encrypted_pairs
+        encrypted_pair = encrypted_array.tolist()
+        encrypted_pairs.append(encrypted_pair)
+
+    encrypted_nums = []
+    for p in encrypted_pairs:
+        for i in p:
+            encrypted_nums.append(i)
+    encrypted_text = numbers_to_text(encrypted_nums, index_to_letter)
+
+    return encrypted_text
 
 
+# Message to be encrypted
 text = "TRYTOBREAKTHISCODE"
-print(encrypt(text, key_26, 26))
 
-
-
-
-
-
-
-
-
-
-
-
+# Encrypt the message using key_26 and mod 26
+print("Encrypted Message:", encrypt(text, key_26, 26, letter_to_index_26, index_to_letter_26))
