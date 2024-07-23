@@ -18,11 +18,6 @@ for index, letter in enumerate(alphabet_mod26):
 key_26 = np.array([[6, 11], [25, 15]])
 # key_29 = np.array([[28, 7], [19, 18]])
 
-
-# Convert text to number based on alphabet chart mapping (e.g., 'A' to 0)
-def text_to_num(text, letter_to_index):
-    return [letter_to_index[char] for char in text]
-
 # Convert numbers back to text
 def numbers_to_text(numbers, index_to_letter):
     # Start with an empty string to build the return value
@@ -36,6 +31,10 @@ def numbers_to_text(numbers, index_to_letter):
     return text
 
 
+# Convert text to number based on alphabet chart mapping (e.g., 'A' to 0)
+def text_to_num(text, letter_to_index):
+    return [letter_to_index[char] for char in text]
+
 # Create pairs from numerical values
 def create_pairs(numbers):
     pairs = []
@@ -44,6 +43,34 @@ def create_pairs(numbers):
         pair = (numbers[i], numbers[i + 1])  # Create a pair using current and next element
         pairs.append(pair)  # Add each pair to the pairs list
     return pairs
+
+
+# Frequency analysis of the pairs from an intercepted encrypted message
+def frequency_analysis(encrypted_message):
+    encrypted_pairs = create_pairs(encrypted_message)
+    total_pairs = len(encrypted_pairs) - 1
+    frequency = {}
+
+    # Counts how many times each pair occurs within the encrypted message
+    for pair in encrypted_pairs:
+        if pair in frequency:
+            frequency[pair] += 1
+        else:
+            frequency[pair] = 1
+
+    # Calculate the frequency of each pair as a percentage
+    frequency_percentage = {}
+    for pair, number_of_pair in frequency.items():
+        frequency_percentage[pair] = (number_of_pair / total_pairs) * 100
+
+    # Sort the frequency_percent dictionary by frequency in descending order
+    sorted_frequency_percent = dict(sorted(frequency_percentage.items(), key=lambda item: item[1], reverse=True))
+
+    return sorted_frequency_percent
+
+    # create "Frequency of Character Pairs in English Language Text" dictionary
+    # compare frequency_percentage to "Frequency of Character Pairs in English Language Text" dictionary
+    # assign like pairs together?
 
 
 # Encryption function using Hill 2-cipher
@@ -82,8 +109,19 @@ def encrypt(message, key, mod, letter_to_index, index_to_letter):
     return encrypted_text
 
 
+def decrypt():
+    return
+
+
 # Message to be encrypted
 text = "TRYTOBREAKTHISCODE"
 
 # Encrypt the message using key_26 and mod 26
 print("Encrypted Message:", encrypt(text, key_26, 26, letter_to_index_26, index_to_letter_26))
+
+# Encrypted file
+with open('/mnt/data/encrypted-message.txt', 'r') as file:
+    encrypted_message = file.read().strip()
+
+frequency_analysis(encrypted_message)
+print("Decrypted Message:", decrypt(text, key_26, 26, letter_to_index_26, index_to_letter_26))
