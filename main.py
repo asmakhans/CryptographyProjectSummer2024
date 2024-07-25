@@ -68,9 +68,22 @@ def frequency_analysis(encrypted_message):
 
     return sorted_frequency_percent
 
-    # create "Frequency of Character bigrams in English Language Text" dictionary
+
+# "Frequency of bigrams in english language" dictionary
+# https://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/digraphs.html
+english_bigram_freq = {
+    'TH': 1.52, 'HE': 1.28, 'IN': 0.94, 'ER': 0.94, 'AN': 0.82, 'RE': 0.68, 'ND': 0.63, 'AT': 0.59,
+    'ON': 0.57, 'NT': 0.56, 'HA': 0.56, 'ES': 0.56, 'ST': 0.55, 'EN': 0.55, 'ED': 0.53, 'TO': 0.52,
+    'IT': 0.50, 'OU': 0.50, 'EA': 0.47, 'HI': 0.46, 'IS': 0.46, 'OR': 0.43, 'TI': 0.34, 'AS': 0.33,
+    'TE': 0.27, 'ET': 0.19, 'NG': 0.18, 'OF': 0.16, 'AL': 0.09, 'DE': 0.09, 'SE': 0.08, 'LE': 0.08,
+    'SA': 0.06, 'SI': 0.05, 'AR': 0.04, 'VE': 0.04, 'RA': 0.04, 'LD': 0.02, 'UR': 0.02
+    # Add more bigrams as needed from other references
+}
+
     # compare frequency_percentage to "Frequency of Character bigrams in English Language Text" dictionary
     # assign like bigrams together?
+
+    # find key matrix by using the c=k_1p_1 + k_2p_2 where c is the expected bigram, k is the key matrix and p is the encyrpted bigrams
 
 
 # Encryption function using Hill 2-cipher
