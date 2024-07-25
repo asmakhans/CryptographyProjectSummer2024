@@ -63,11 +63,10 @@ def frequency_analysis(encrypted_message):
     for bigram, number_of_bigrams in frequency.items():
         frequency_percentage[bigram] = (number_of_bigrams / total_bigrams) * 100
 
-    # Sort the frequency_percent dictionary by frequency in descending order
-    sorted_frequency_percent = dict(sorted(frequency_percentage.items(), key=lambda item: item[1], reverse=True))
+    # Sort the frequency_percentage dictionary by frequency in descending order
+    sorted_frequency_percentage = dict(sorted(frequency_percentage.items(), key=lambda item: item[1], reverse=True))
 
-    return sorted_frequency_percent
-
+    return sorted_frequency_percentage
 
 # "Frequency of bigrams in english language" dictionary
 # https://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/digraphs.html
@@ -80,10 +79,10 @@ english_bigram_freq = {
     # Add more bigrams as needed from other references
 }
 
-    # compare frequency_percentage to "Frequency of Character bigrams in English Language Text" dictionary
-    # assign like bigrams together?
+# compare sorted_frequency_percentage to "Frequency of bigrams in english language" dictionary
+# assign like bigrams together
 
-    # find key matrix by using the c=k_1p_1 + k_2p_2 where c is the expected bigram, k is the key matrix and p is the encyrpted bigrams
+# find key matrix by using the c=k_1p_1 + k_2p_2 where c is the expected bigram, k is the key matrix and p is the encyrpted bigrams
 
 
 # Encryption function using Hill 2-cipher
