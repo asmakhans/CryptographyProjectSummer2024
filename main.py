@@ -3,7 +3,7 @@ import numpy as np
 
 # Assign each element (letter) into its corresponding indexed value (starting from 0)
 alphabet_mod26 = 'abcdefghijklmnopqrstuvwxyz'
-alphabet_mod29 = 'abcdefghijklmnopqrstuvwxyz ?!'  # this includes _ ? !
+alphabet_mod29 = 'abcdefghijklmnopqrstuvwxyz ?!'  # this includes space, ?, and !
 
 # Create empty dictionaries
 letter_to_index_26 = {}
@@ -38,8 +38,9 @@ def numbers_to_text(numbers, index_to_letter):
         text += letter
     return text
 
-# Convert text to number based on alphabet chart mapping (e.g., 'A' to 0)
+# Convert text to number based on alphabet chart mapping (e.g., 'a' to 0)
 def text_to_num(text, letter_to_index):
+    text = text.lower()  # Convert text to lowercase
     return [letter_to_index[char] for char in text]
 
 # Create bigrams from numerical values
@@ -48,8 +49,7 @@ def create_bigrams(numbers):
 
     # Pad the message if its length is odd
     if len(numbers) % 2 != 0:
-        # Padding message with 'x' to make length even
-        numbers += 'x'  # Why would this be a character and not a number?
+        numbers.append(letter_to_index_26['x'])  # Use numerical value of 'x' for padding
 
     # Iterate through the list of numbers in steps of 2
     for i in range(0, len(numbers), 2):
@@ -57,12 +57,11 @@ def create_bigrams(numbers):
         bigrams.append(pair)  # Add each bigram to the bigrams list
     return bigrams
 
-
 # Count frequency of each bigram from an intercepted encrypted message
-frequency_percentages = {}
-def frequency_analysis(encrypted_message):
-    encrypted_bigrams = create_bigrams(encrypted_message)
-    total_bigrams = len(encrypted_bigrams) - 1
+def frequency_analysis(encrypted_message, mod, letter_to_index):
+    encrypted_nums = text_to_num(encrypted_message, letter_to_index)
+    encrypted_bigrams = create_bigrams(encrypted_nums)
+    total_bigrams = len(encrypted_bigrams)
     frequency = {}
 
     # Counts how many times each pair occurs within the encrypted message
@@ -73,38 +72,44 @@ def frequency_analysis(encrypted_message):
             frequency[bigram] = 1
 
     # Calculate the frequencies of each pair as a percentage
-    # frequency_percentages = {}
-    for bigram, number_of_bigrams in frequency.items():
-        frequency_percentages[bigram] = (number_of_bigrams / total_bigrams) * 100
+    frequency_percentages = {bigram: round((count / total_bigrams) * 100, 2) for bigram, count in frequency.items()}
 
     # Sort the frequency_percentage dictionary by frequency in descending order
     sorted_frequency_percentages = dict(sorted(frequency_percentages.items(), key=lambda item: item[1], reverse=True))
 
     return sorted_frequency_percentages
 
-# "Frequency of bigrams in english language" dictionary
-# https://pi.math.cornell.edu/~mec/2003-2004/cryptography/subs/digraphs.html
+# "Frequency of bigrams in English language" dictionary
 english_bigram_frequencies = {
     'th': 1.52, 'he': 1.28, 'in': 0.94, 'er': 0.94, 'an': 0.82, 're': 0.68, 'nd': 0.63, 'at': 0.59,
     'on': 0.57, 'nt': 0.56, 'ha': 0.56, 'es': 0.56, 'st': 0.55, 'en': 0.55, 'ed': 0.53, 'to': 0.52,
     'it': 0.50, 'ou': 0.50, 'ea': 0.47, 'hi': 0.46, 'is': 0.46, 'or': 0.43, 'ti': 0.34, 'as': 0.33,
     'te': 0.27, 'et': 0.19, 'ng': 0.18, 'of': 0.16, 'al': 0.09, 'de': 0.09, 'se': 0.08, 'le': 0.08,
     'sa': 0.06, 'si': 0.05, 'ar': 0.04, 've': 0.04, 'ra': 0.04, 'ld': 0.02, 'ur': 0.02
-    # Add more bigrams as needed from other references
+    # Add more bigrams if needed from other references
 }
 
-# Compare sorted_frequency_percentages to english_bigram_frequencies and assign like bigrams together
-def compare_frequencies(encrypted_message, english_bigram_frequencies):
+# Make frequencies dictionary from the encrypted message with the expected bigrams
+def compare_frequencies(encrypted_message, mod, letter_to_index, english_bigram_frequencies):
+    sorted_frequencies = frequency_analysis(encrypted_message, mod, letter_to_index)
 
-    return frequency_percentages
+    # Used sorted_frequency_percentages and replaces key with the keys from english_bigram_frequencies
+    sorted_predicted_bigrams = {}
+    for encrypted_frequency, english_bigram in zip(sorted_frequencies.values(), english_bigram_frequencies.keys()):
+        sorted_predicted_bigrams[english_bigram] = encrypted_frequency
 
-# find key matrix by using the c=k_1p_1 + k_2p_2 where c is the expected bigram, k is the key matrix and p is the encyrpted bigrams
+    return sorted_predicted_bigrams
+
+print("example 1: ", compare_frequencies("tryto", 26, letter_to_index_26, english_bigram_frequencies))
+print("example 2: ", compare_frequencies("tatalg", 26, letter_to_index_26, english_bigram_frequencies))
+print("3: ", frequency_analysis("ta the she", 29, letter_to_index_29), '\n')
+
+#
+def find_key_matrix():
+    return
 
 # Encryption function using Hill 2-cipher
 def encrypt(message, key, mod, letter_to_index, index_to_letter):
-    # Convert the message to lowercase
-    message = message.lower()
-
     # Convert the message to numerical values
     message_nums = text_to_num(message, letter_to_index)
 
@@ -135,25 +140,17 @@ def encrypt(message, key, mod, letter_to_index, index_to_letter):
 def decrypt():
     return
 
-
 # Encrypt the message using key_26 and mod 26
-message_to_encrypt = "TRYTOBREAKTHISCODE" # len = 18
+message_to_encrypt = "trytobreakthiscode" # len = 18
 print("Encrypted Message:", encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26))
 
 # Encrypt the message using key_29 and mod 29
 message_to_decrypt = "LYNY JRVMQNS JL ! " # len = 18
 # print("Decrypt Message:", decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29))
 
-odd_length = "your mission is" # len = 15
-
-print("frequencies: ", frequency_analysis(message_to_encrypt))
-print("frequencies: ", frequency_analysis(message_to_decrypt))
-print("frequencies: ", frequency_analysis(odd_length))
-
+odd_length = "yourmissionis" # len = 15
 
 # # Encrypted file
-# with open('/mnt/data/encrypted-message.txt', 'r') as file:
+# with open('encrypted-message.txt', 'r') as file:
 #     intercepted_message = file.read().strip()
-#
-# frequency_analysis(encrypted_message)
-# print("Decrypted Message:", decrypt(text, key_26, 26, letter_to_index_26, index_to_letter_26))26, letter_to_index_26, index_to_letter_26))
+# frequency_analysis(intercepted_message)
