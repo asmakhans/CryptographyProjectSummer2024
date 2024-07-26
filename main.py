@@ -93,18 +93,24 @@ english_bigram_frequencies = {
 }
 
 plaintext_bigrams = {}
-# Make frequencies dictionary from the encrypted message with the expected bigrams
-def compare_frequencies(encrypted_message, mod, letter_to_index):
+# Makes dictionary with plaintext bigrams
+def plaintext(encrypted_message, mod, letter_to_index):
     sorted_frequencies = frequency_analysis(encrypted_message, mod, letter_to_index)
 
-    sorted_predicted_bigrams = {}
-    # Used sorted_frequency_percentages and replaces key with the keys from english_bigram_frequencies
+    sorted_plaintext_bigrams = {}
+    # Used sorted_plaintext_bigrams and replaces key with the keys from english_bigram_frequencies
     for encrypted_frequency, english_bigram in zip(sorted_frequencies.values(), english_bigram_frequencies.keys()):
-        sorted_predicted_bigrams[english_bigram] = encrypted_frequency
+        sorted_plaintext_bigrams[english_bigram] = encrypted_frequency
 
-    # use predicted_bigrams and sorted_predicted_bigrams to find plaintext bigrams
+    # make an array of the keys from sorted_plaintext_bigrams
+    sorted_plaintext_keys = list(sorted_plaintext_bigrams.keys())
+    # take the key values of frequency_percentages and pair them with the value of the sorted_plaintext_keys
+    for index, key in enumerate(frequency_percentages.keys()):
+        if index < len(sorted_plaintext_keys):
+            new_key = sorted_plaintext_keys[index]
+            plaintext_bigrams[new_key] = frequency_percentages[key]
 
-    return sorted_predicted_bigrams
+    return plaintext_bigrams
 
 def mod_inv(matrix, mod):
     matrix = Matrix(matrix)
@@ -116,9 +122,9 @@ def mod_inv(matrix, mod):
 
 # Fuction finds the key matrix using the encrypted message and the inverse of the plaintext
 def find_key_matrix(mod):
-    # inverse predicted_bigrams
-    plaintext_inv = mod_inv(plaintext_bigrams, mod)
-    key = np.dot(frequency_percentages, plaintext_inv) % mod
+    # inverse plaintext_bigrams
+    plaintext_inv = mod_inv(plaintext_bigrams.keys()[:2], mod)
+    key = np.dot(frequency_percentages.keys()[:2], plaintext_inv) % mod
 
     return key
 
@@ -155,7 +161,7 @@ def decrypt():
     return
 
 # Encrypt the message using key_26 and mod 26
-message_to_encrypt = "trytobreakthiscode" # len = 18
+message_to_encrypt = "TRYTOBREAKTHISCODE" # len = 18
 print("Encrypted Message:", encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26))
 
 # Encrypt the message using key_29 and mod 29
@@ -165,7 +171,7 @@ message_to_decrypt = "LYNY JRVMQNS JL ! " # len = 18
 # Encrypted file
 with open('encrypted-message.txt', 'r') as file:
     intercepted_message = file.read().strip()
-print(create_bigrams(text_to_num(intercepted_message, letter_to_index_26)), '\n')
+print(create_bigrams(text_to_num(intercepted_message, letter_to_index_26)))
+print(frequency_analysis(intercepted_message, 26, letter_to_index_26), '\n')
 
-print(frequency_analysis(intercepted_message, 26, letter_to_index_26))
-print(compare_frequencies(intercepted_message, 26, letter_to_index_26))
+print(plaintext(intercepted_message, 26, letter_to_index_26))
