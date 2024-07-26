@@ -1,5 +1,7 @@
 import string
 import numpy as np
+from sympy import Matrix
+from collections import Counter
 
 # Assign each element (letter) into its corresponding indexed value (starting from 0)
 alphabet_mod26 = 'abcdefghijklmnopqrstuvwxyz'
@@ -57,6 +59,7 @@ def create_bigrams(numbers):
         bigrams.append(pair)  # Add each bigram to the bigrams list
     return bigrams
 
+frequency_percentages = {}
 # Count frequency of each bigram from an intercepted encrypted message
 def frequency_analysis(encrypted_message, mod, letter_to_index):
     encrypted_nums = text_to_num(encrypted_message, letter_to_index)
@@ -89,24 +92,35 @@ english_bigram_frequencies = {
     # Add more bigrams if needed from other references
 }
 
+plaintext_bigrams = {}
 # Make frequencies dictionary from the encrypted message with the expected bigrams
-def compare_frequencies(encrypted_message, mod, letter_to_index, english_bigram_frequencies):
+def compare_frequencies(encrypted_message, mod, letter_to_index):
     sorted_frequencies = frequency_analysis(encrypted_message, mod, letter_to_index)
 
-    # Used sorted_frequency_percentages and replaces key with the keys from english_bigram_frequencies
     sorted_predicted_bigrams = {}
+    # Used sorted_frequency_percentages and replaces key with the keys from english_bigram_frequencies
     for encrypted_frequency, english_bigram in zip(sorted_frequencies.values(), english_bigram_frequencies.keys()):
         sorted_predicted_bigrams[english_bigram] = encrypted_frequency
 
+    # use predicted_bigrams and sorted_predicted_bigrams to find plaintext bigrams
+
     return sorted_predicted_bigrams
 
-print("example 1: ", compare_frequencies("tryto", 26, letter_to_index_26, english_bigram_frequencies))
-print("example 2: ", compare_frequencies("tatalg", 26, letter_to_index_26, english_bigram_frequencies))
-print("3: ", frequency_analysis("ta the she", 29, letter_to_index_29), '\n')
+def mod_inv(matrix, mod):
+    matrix = Matrix(matrix)
+    det = int(matrix.det())
+    det_inv = pow(det, -1, mod)
+    matrix_mod_inv = det_inv * matrix.inv_mod(mod)
 
-#
-def find_key_matrix():
-    return
+    return np.array(matrix_mod_inv).astype(int)
+
+# Fuction finds the key matrix using the encrypted message and the inverse of the plaintext
+def find_key_matrix(mod):
+    # inverse predicted_bigrams
+    plaintext_inv = mod_inv(plaintext_bigrams, mod)
+    key = np.dot(frequency_percentages, plaintext_inv) % mod
+
+    return key
 
 # Encryption function using Hill 2-cipher
 def encrypt(message, key, mod, letter_to_index, index_to_letter):
@@ -148,9 +162,10 @@ print("Encrypted Message:", encrypt(message_to_encrypt, key_26, 26, letter_to_in
 message_to_decrypt = "LYNY JRVMQNS JL ! " # len = 18
 # print("Decrypt Message:", decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29))
 
-odd_length = "yourmissionis" # len = 15
+# Encrypted file
+with open('encrypted-message.txt', 'r') as file:
+    intercepted_message = file.read().strip()
+print(create_bigrams(text_to_num(intercepted_message, letter_to_index_26)), '\n')
 
-# # Encrypted file
-# with open('encrypted-message.txt', 'r') as file:
-#     intercepted_message = file.read().strip()
-# frequency_analysis(intercepted_message)
+print(frequency_analysis(intercepted_message, 26, letter_to_index_26))
+print(compare_frequencies(intercepted_message, 26, letter_to_index_26))
