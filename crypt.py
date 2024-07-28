@@ -4,8 +4,8 @@ from sympy import Matrix
 from collections import Counter
 
 # Assign each element (letter) into its corresponding indexed value (starting from 0)
-alphabet_mod26 = 'abcdefghijklmnopqrstuvwxyz'
-alphabet_mod29 = 'abcdefghijklmnopqrstuvwxyz ?!'  # this includes space, ?, and !
+alphabet_mod26 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+alphabet_mod29 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ ?!'  # this includes space, ?, and !
 
 # Create empty dictionaries
 letter_to_index_26 = {}
@@ -28,22 +28,18 @@ for index, letter in enumerate(alphabet_mod29):
 key_26 = np.array([[6, 11], [25, 15]])
 key_29 = np.array([[28, 7], [19, 18]])
 
+
 # Convert numbers back to text
 def numbers_to_text(numbers, index_to_letter):
-    # Start with an empty string to build the return value
-    text = ""
-    # Iterate through all the numbers
-    for n in numbers:
-        # Convert each number to its letter using the index_to_letter dictionary
-        letter = index_to_letter[n]
-        # Concatenate the letter to the return string
-        text += letter
+    text = "".join(index_to_letter[n] for n in numbers)
     return text
+
 
 # Convert text to number based on alphabet chart mapping (e.g., 'a' to 0)
 def text_to_num(text, letter_to_index):
-    text = text.lower()  # Convert text to lowercase
+    text = text.upper()  # make it all input text to uppercase to avoid any confusion
     return [letter_to_index[char] for char in text]
+
 
 # Create bigrams from numerical values
 def create_bigrams(numbers):
@@ -51,15 +47,18 @@ def create_bigrams(numbers):
 
     # Pad the message if its length is odd
     if len(numbers) % 2 != 0:
-        numbers.append(letter_to_index_26['x'])  # Use numerical value of 'x' for padding
+        numbers.append(letter_to_index_26['X'])
 
-    # Iterate through the list of numbers in steps of 2
+    # Iterate through the list of numbers in steps of 2 since we're creating bigrams
     for i in range(0, len(numbers), 2):
         pair = (numbers[i], numbers[i + 1])  # Create a pair using current and next element
         bigrams.append(pair)  # Add each bigram to the bigrams list
     return bigrams
 
+
 frequency_percentages = {}
+
+
 # Count frequency of each bigram from an intercepted encrypted message
 def frequency_analysis(encrypted_message, mod, letter_to_index):
     encrypted_nums = text_to_num(encrypted_message, letter_to_index)
@@ -82,51 +81,39 @@ def frequency_analysis(encrypted_message, mod, letter_to_index):
 
     return sorted_frequency_percentages
 
-# "Frequency of bigrams in English language" dictionary
-english_bigram_frequencies = {
-    'th': 1.52, 'he': 1.28, 'in': 0.94, 'er': 0.94, 'an': 0.82, 're': 0.68, 'nd': 0.63, 'at': 0.59,
-    'on': 0.57, 'nt': 0.56, 'ha': 0.56, 'es': 0.56, 'st': 0.55, 'en': 0.55, 'ed': 0.53, 'to': 0.52,
-    'it': 0.50, 'ou': 0.50, 'ea': 0.47, 'hi': 0.46, 'is': 0.46, 'or': 0.43, 'ti': 0.34, 'as': 0.33,
-    'te': 0.27, 'et': 0.19, 'ng': 0.18, 'of': 0.16, 'al': 0.09, 'de': 0.09, 'se': 0.08, 'le': 0.08,
-    'sa': 0.06, 'si': 0.05, 'ar': 0.04, 've': 0.04, 'ra': 0.04, 'ld': 0.02, 'ur': 0.02
-    # Add more bigrams if needed from other references
-}
-
-plaintext_bigrams = {}
-# Makes dictionary with plaintext bigrams
-def plaintext(encrypted_message, mod, letter_to_index):
-    sorted_frequencies = frequency_analysis(encrypted_message, mod, letter_to_index)
-
-    sorted_plaintext_bigrams = {}
-    # Used sorted_plaintext_bigrams and replaces key with the keys from english_bigram_frequencies
-    for encrypted_frequency, english_bigram in zip(sorted_frequencies.values(), english_bigram_frequencies.keys()):
-        sorted_plaintext_bigrams[english_bigram] = encrypted_frequency
-
-    # make an array of the keys from sorted_plaintext_bigrams
-    sorted_plaintext_keys = list(sorted_plaintext_bigrams.keys())
-    # take the key values of frequency_percentages and pair them with the value of the sorted_plaintext_keys
-    for index, key in enumerate(frequency_percentages.keys()):
-        if index < len(sorted_plaintext_keys):
-            new_key = sorted_plaintext_keys[index]
-            plaintext_bigrams[new_key] = frequency_percentages[key]
-
-    return plaintext_bigrams
 
 def mod_inv(matrix, mod):
     matrix = Matrix(matrix)
-    # det = round(matrix.det())  # Updated
-    # det_inv = pow(det, -1, mod)
-    matrix_mod_inv = matrix.inv_mod(mod)  # Updated
-
+    matrix_mod_inv = matrix.inv_mod(mod)
     return np.array(matrix_mod_inv).astype(int)
 
-# Fuction finds the key matrix using the encrypted message and the inverse of the plaintext
-def find_key_matrix(mod):
-    # inverse plaintext_bigrams
-    plaintext_inv = mod_inv(plaintext_bigrams.keys()[:2], mod)
-    key = np.dot(frequency_percentages.keys()[:2], plaintext_inv) % mod
 
-    return key
+# suggested approach: sovle the linear system for key matrix using only the top 2 bigrams of 'th' and 'he'
+def find_key_matrix(two_bigrams, expected_bigrams, mod):
+    # take list of bigrams and converts each bigram to a list  so like converts the list of lists into an array
+    bigram_vec = np.array(
+        [list(bigram) for bigram in two_bigrams]).T  # .T transponses: swaps the rows and cols of the array
+    result_vec = np.array([list(bigram) for bigram in expected_bigrams]).T
+
+    bigram_matrix = Matrix(bigram_vec).T
+    result_matrix = Matrix(result_vec).T
+
+    # now we need to find the mod inverse of the bigram matrix
+    bigram_matrix_inverse = bigram_matrix.inv_mod(mod)
+
+    # now that we have the inverse of the matrix, we can find the key matrix
+    key_matrix = (result_matrix * bigram_matrix_inverse) % mod
+
+    return np.array(key_matrix).astype(int)  # cast to int
+
+
+# just like how we convert from num to text and text to num, convert letter bigrams to numerical bigrams
+def bigram_to_num(bigram, letter_to_index):
+    return [letter_to_index[bigram[0]], letter_to_index[bigram[1]]]
+
+
+english_bigram_frequencies = ['TH', 'HE']
+
 
 # Encryption function using Hill 2-cipher
 def encrypt(message, key, mod, letter_to_index, index_to_letter):
@@ -155,6 +142,7 @@ def encrypt(message, key, mod, letter_to_index, index_to_letter):
     encrypted_text = numbers_to_text(encrypted_nums, index_to_letter)
 
     return encrypted_text
+
 
 # Decrypt function using Hill 2-cipher
 def decrypt(text, key, mod, letter_to_index, index_to_letter):
@@ -187,22 +175,35 @@ def decrypt(text, key, mod, letter_to_index, index_to_letter):
 
     return decrypted_text
 
-# Encrypt the message using key_26 and mod 26
-message_to_encrypt = "TRYTOBREAKTHISCODE" # len = 18
-print("Encrypted Message:", encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26))
 
-# # Encrypt the message using key_29 and mod 29
-# message_to_decrypt = "LYNY JRVMQNS JL ! " # len = 18
-# print("Decrypt Message:", decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29))
+# UNCOMMENT OUT FOR QUESTION 1, currently commented out to make sure question 2 errors are different than q1
+# # Encrypt the message using key_26 and mod 26, then with key_29 and mod 29
+# message_to_encrypt = "TRYTOBREAKTHISCODE"  # len = 18
+# first_encrypt = encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
+# final_encrypt = encrypt(first_encrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
+# print("Encrypted Message:", final_encrypt)
+#
+# # Decrypt the message using key_29 and mod 29, then with key_26 and mod 26
+# message_to_decrypt = "LYNY JRVMQNS JL ! "  # len = 18
+# first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
+# final_decrypt = decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
+# print("Decrypted Message:", final_decrypt)
 
-message_to_decrypt = "LYNY JRVMQNS JL ! " # len = 18
-first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
-print("Decrypt Message:", decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26))
 
-# Encrypted file
+# QUESTION 2:
 with open('encrypted-message.txt', 'r') as file:
-    intercepted_message = file.read().strip()
-print(create_bigrams(text_to_num(intercepted_message, letter_to_index_26)))
-print(frequency_analysis(intercepted_message, 26, letter_to_index_26), '\n')
+    encrypted_message = file.read().strip()
 
-print(plaintext(intercepted_message, 26, letter_to_index_26))
+print("letter_to_index_26:", letter_to_index_26)
+
+# Frequency analysis on intercepted message
+frequency_data = frequency_analysis(encrypted_message, 26, letter_to_index_26)
+top_bigrams = list(frequency_data.keys())[:2]
+print("Top bigrams in encrypted file's message:", top_bigrams)
+
+# Expected bigrams in plaintext
+expected_bigrams = [bigram_to_num(bigram, letter_to_index_26) for bigram in english_bigram_frequencies]
+
+# Find the key matrix
+found_key_matrix = find_key_matrix(top_bigrams, expected_bigrams, 26)
+print("Found Key Matrix:", found_key_matrix)
