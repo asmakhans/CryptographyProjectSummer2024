@@ -125,7 +125,7 @@ def find_key_matrix(two_bigrams, expected_bigrams, mod):
     print(bigram_matrix)
 
     result_matrix = Matrix(result_vec)
-    print(result_matrix)
+    print("result matrix: ", result_matrix)
 
     # Find the key matrix by multiplying the inverse of the bigram matrix with the result matrix
     key_matrix = (bigram_matrix * inverse(result_matrix, mod)) % mod
@@ -240,14 +240,16 @@ print("Decrypted File Message:", final_filedecrypt)
 
 
 # QUESTION 3:
+print("Enter alphabet: " )
+alphabet = input()
 print("Enter your message: " )
 message = input()
 print("Decrypt or Encrypt: ")
 mode = input()
 
 if mode == "encrypt":
-    encrypted_message = process_message(message, key_26, alphabet_mod26, encrypt_mode=True)
+    encrypted_message = process_message(message, key_26, alphabet, encrypt_mode=True)
     print("Encrypted Message:", encrypted_message)
 else:
-    decrypted_message = process_message(message, key_26, alphabet_mod26, encrypt_mode=False)
+    decrypted_message = process_message(message, key_26, alphabet, encrypt_mode=False)
     print("Decrypted Message:", decrypted_message)
