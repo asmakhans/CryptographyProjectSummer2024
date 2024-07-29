@@ -84,8 +84,21 @@ def frequency_analysis(encrypted_message, mod, letter_to_index):
 
 def mod_inv(matrix, mod):
     matrix = Matrix(matrix)
-    matrix_mod_inv = matrix.inv_mod(mod)
+    # matrix_mod_inv = matrix.inv_mod(mod)
+    matrix_mod_inv = inverse(matrix, mod)
+
     return np.array(matrix_mod_inv).astype(int)
+
+# Check if matrix is invertible under given modulus
+def inverse(matrix, mod):
+    matrix = Matrix(matrix)
+    det = matrix.det() % mod
+
+    matrix = (matrix.cofactorMatrix())
+    matrix = matrix.T
+
+    return (matrix * (pow(det, -1, mod)))
+    #cofactor# transpose
 
 
 # suggested approach: sovle the linear system for key matrix using only the top 2 bigrams of 'th' and 'he'
@@ -93,16 +106,23 @@ def find_key_matrix(two_bigrams, expected_bigrams, mod):
     # take list of bigrams and converts each bigram to a list  so like converts the list of lists into an array
     bigram_vec = np.array(
         [list(bigram) for bigram in two_bigrams]).T  # .T transponses: swaps the rows and cols of the array
-    result_vec = np.array([list(bigram) for bigram in expected_bigrams]).T
+    result_vec = np.array([list(bigram) for bigram in expected_bigrams]).T # TH HE
 
-    bigram_matrix = Matrix(bigram_vec).T
-    result_matrix = Matrix(result_vec).T
+    bigram_matrix = Matrix(bigram_vec)
     print(bigram_matrix)
+
+    result_matrix = Matrix(result_vec)
+    print(result_matrix)
+
     # now we need to find the mod inverse of the bigram matrix
-    bigram_matrix_inverse = bigram_matrix.inv_mod(mod)
+    # bigram_matrix_inverse = inverse(bigram_matrix, mod)
 
     # Find the key matrix by multiplying the inverse of the bigram matrix with the result matrix
-    key_matrix = (bigram_matrix_inverse * result_matrix) % mod
+    key_matrix = (bigram_matrix * inverse(result_matrix, mod)) % mod
+    # 111 det
+    # 1/111
+    # 15  -6
+    # -14 13
 
     return np.array(key_matrix).astype(int)  # cast to int
 
@@ -154,7 +174,6 @@ def decrypt(text, key, mod, letter_to_index, index_to_letter):
 
     # Get the inverse of the key matrix modulo the specified modulus
     key_inv = mod_inv(key, mod)
-    print(key_inv)
 
     decrypted_bigrams = []
     for bigram in bigrams:
@@ -179,23 +198,21 @@ def decrypt(text, key, mod, letter_to_index, index_to_letter):
 
 # UNCOMMENT OUT FOR QUESTION 1, currently commented out to make sure question 2 errors are different than q1
 # Encrypt the message using key_26 and mod 26, then with key_29 and mod 29
-message_to_encrypt = "TRYTOBREAKTHISCODE"  # len = 18
-first_encrypt = encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
-final_encrypt = encrypt(first_encrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
-print("Encrypted Message:", final_encrypt)
+# message_to_encrypt = "TRYTOBREAKTHISCODE"  # len = 18
+# first_encrypt = encrypt(message_to_encrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
+# final_encrypt = encrypt(first_encrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
+# print("Encrypted Message:", final_encrypt)
+#
+# # Decrypt the message using key_29 and mod 29, then with key_26 and mod 26
+# message_to_decrypt = "LYNY JRVMQNS JL ! "  # len = 18
+# first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
+# final_decrypt = decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
+# print("Decrypted Message:", final_decrypt)
 
-# Decrypt the message using key_29 and mod 29, then with key_26 and mod 26
-message_to_decrypt = "LYNY JRVMQNS JL ! "  # len = 18
-first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
-final_decrypt = decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
-print("Decrypted Message:", final_decrypt)
-
-
-# QUESTION 2:
+#
+# # QUESTION 2:
 with open('encrypted-message.txt', 'r') as file:
     encrypted_message = file.read().strip()
-
-print("letter_to_index_26:", letter_to_index_26)
 
 # Frequency analysis on intercepted message
 frequency_data = frequency_analysis(encrypted_message, 26, letter_to_index_26)
@@ -208,3 +225,6 @@ expected_bigrams = [bigram_to_num(bigram, letter_to_index_26) for bigram in engl
 # Find the key matrix
 found_key_matrix = find_key_matrix(top_bigrams, expected_bigrams, 26)
 print("Found Key Matrix:", found_key_matrix)
+
+final_filedecrypt = decrypt(encrypted_message, found_key_matrix, 26, letter_to_index_26, index_to_letter_26)
+print("Decrypted File Message:", final_filedecrypt)
