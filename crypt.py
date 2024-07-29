@@ -183,27 +183,27 @@ def decrypt(text, key, mod, letter_to_index, index_to_letter):
 # final_encrypt = encrypt(first_encrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
 # print("Encrypted Message:", final_encrypt)
 #
-# # Decrypt the message using key_29 and mod 29, then with key_26 and mod 26
-# message_to_decrypt = "LYNY JRVMQNS JL ! "  # len = 18
-# first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
-# final_decrypt = decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
-# print("Decrypted Message:", final_decrypt)
+# Decrypt the message using key_29 and mod 29, then with key_26 and mod 26
+message_to_decrypt = "LYNY JRVMQNS JL ! "  # len = 18
+first_decrypt = decrypt(message_to_decrypt, key_29, 29, letter_to_index_29, index_to_letter_29)
+final_decrypt = decrypt(first_decrypt, key_26, 26, letter_to_index_26, index_to_letter_26)
+print("Decrypted Message:", final_decrypt)
 
 
 # QUESTION 2:
-with open('encrypted-message.txt', 'r') as file:
-    encrypted_message = file.read().strip()
-
-print("letter_to_index_26:", letter_to_index_26)
-
-# Frequency analysis on intercepted message
-frequency_data = frequency_analysis(encrypted_message, 26, letter_to_index_26)
-top_bigrams = list(frequency_data.keys())[:2]
-print("Top bigrams in encrypted file's message:", top_bigrams)
-
-# Expected bigrams in plaintext
-expected_bigrams = [bigram_to_num(bigram, letter_to_index_26) for bigram in english_bigram_frequencies]
-
-# Find the key matrix
-found_key_matrix = find_key_matrix(top_bigrams, expected_bigrams, 26)
-print("Found Key Matrix:", found_key_matrix)
+# with open('encrypted-message.txt', 'r') as file:
+#     encrypted_message = file.read().strip()
+#
+# print("letter_to_index_26:", letter_to_index_26)
+#
+# # Frequency analysis on intercepted message
+# frequency_data = frequency_analysis(encrypted_message, 26, letter_to_index_26)
+# top_bigrams = list(frequency_data.keys())[:2]
+# print("Top bigrams in encrypted file's message:", top_bigrams)
+#
+# # Expected bigrams in plaintext
+# expected_bigrams = [bigram_to_num(bigram, letter_to_index_26) for bigram in english_bigram_frequencies]
+#
+# # Find the key matrix
+# found_key_matrix = find_key_matrix(top_bigrams, expected_bigrams, 26)
+# print("Found Key Matrix:", found_key_matrix)
